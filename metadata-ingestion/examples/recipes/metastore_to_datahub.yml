@@ -2,8 +2,8 @@
 source:
   type: "metastore"
   config:
-    metastore_yml_path: "/Users/pavelborshchenko/CODE/Scribt/metastore/yml"
-    kitchensink_json_dump: "/Users/pavelborshchenko/CODE/Scribt/kitchensink-etl/new-kitchensink-graph.json"
+    metastore_yml_path: ".../metastore/yml"
+    kitchensink_json_dump: ".../kitchensink-etl/new-kitchensink-graph.json"
 #    database_pattern:
 #      allow:
 #        - "view_analytics"
