@@ -1,0 +1,19 @@
+---
+source:
+  type: "metastore"
+  config:
+    metastore_yml_path: "/Users/pavelborshchenko/CODE/Scribt/metastore/yml"
+    kitchensink_json_dump: "/Users/pavelborshchenko/CODE/Scribt/kitchensink-etl/new-kitchensink-graph.json"
+#    database_pattern:
+#      allow:
+#        - "view_analytics"
+#        - "warehouse"
+
+sink:
+  type: "datahub-rest"
+  config:
+    server: 'http://localhost:8080'
+#sink:
+#  type: "file"
+#  config:
+#    filename: './metastore_mces.json'

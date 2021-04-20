@@ -168,6 +168,7 @@ setuptools.setup(
             "dbt = datahub.ingestion.source.dbt:DBTSource",
             "druid = datahub.ingestion.source.druid:DruidSource",
             "glue = datahub.ingestion.source.glue:GlueSource",
+            "metastore = datahub.ingestion.source.metastore:MetastoreSource",
             "hive = datahub.ingestion.source.hive:HiveSource",
             "kafka = datahub.ingestion.source.kafka:KafkaSource",
             "ldap = datahub.ingestion.source.ldap:LDAPSource",
