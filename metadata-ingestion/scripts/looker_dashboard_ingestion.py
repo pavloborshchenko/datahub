@@ -19,10 +19,10 @@ from datahub.emitter.rest_emitter import DatahubRestEmitter
 from datahub.metadata.com.linkedin.pegasus2avro.mxe import MetadataChangeEvent
 
 # Configuration
-AVSC_PATH = "/Users/pavelborshchenko/CODE/pavloborshchenko/datahub/metadata-events/mxe-schemas/src/renamed/avro/com/linkedin/mxe/MetadataChangeEvent.avsc"
+AVSC_PATH = "../../metadata-events/mxe-schemas/src/renamed/avro/com/linkedin/mxe/MetadataChangeEvent.avsc"
 KAFKA_TOPIC = 'MetadataChangeEvent_v4'
-LOOKER_MCE_FILE = "/Users/pavelborshchenko/CODE/pavloborshchenko/datahub/metadata-ingestion/examples/mce_files/looker_mce.json"
-LOOKER_MCE_WORKAROUND_FILE = "/Users/pavelborshchenko/CODE/pavloborshchenko/datahub/metadata-ingestion/examples/mce_files/looker_mce_workaround.json"
+LOOKER_MCE_FILE = "../examples/mce_files/looker_mce.json"
+LOOKER_MCE_WORKAROUND_FILE = "../examples/mce_files/looker_mce_workaround.json"
 
 # Set the following environmental variables to hit Looker's API
 # LOOKERSDK_CLIENT_ID=YourClientID
