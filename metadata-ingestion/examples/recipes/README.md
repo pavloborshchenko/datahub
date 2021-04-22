@@ -31,6 +31,8 @@ export LOOKERSDK_BASE_URL=https://scribd.cloud.looker.com
 
 # To the same venv as above install additional requirement:
 pip3 install looker-sdk==0.1.3b20
+pip3 install avro-python3>=1.8.2
+pip3 install confluent-kafka>=1.5.0
 
 # Run import
 cd scripts
