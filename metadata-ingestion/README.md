@@ -45,6 +45,7 @@ We use a plugin architecture so that you can install only the dependencies you a
 | postgres      | `pip install 'acryl-datahub[postgres]'`                    | Postgres source            |
 | sqlalchemy    | `pip install 'acryl-datahub[sqlalchemy]'`                  | Generic SQLAlchemy source  |
 | snowflake     | `pip install 'acryl-datahub[snowflake]'`                   | Snowflake source           |
+| superset      | `pip install 'acryl-datahub[superset]'`                    | Supserset source           |
 | mongodb       | `pip install 'acryl-datahub[mongodb]'`                     | MongoDB source             |
 | ldap          | `pip install 'acryl-datahub[ldap]'` ([extra requirements]) | LDAP source                |
 | kafka         | `pip install 'acryl-datahub[kafka]'`                       | Kafka source               |
@@ -204,7 +205,10 @@ source:
         - "schema1.table2"
     options:
       # Any options specified here will be passed to SQLAlchemy's create_engine as kwargs.
-      # See https://docs.sqlalchemy.org/en/14/core/engines.html for details.
+      # See https://docs.sqlalchemy.org/en/14/core/engines.html#sqlalchemy.create_engine for details.
+      # Many of these options are specific to the underlying database driver, so that library's
+      # documentation will be a good reference for what is supported. To find which dialect is likely
+      # in use, consult this table: https://docs.sqlalchemy.org/en/14/dialects/index.html.
       charset: "utf8"
 ```
 
@@ -261,9 +265,30 @@ source:
     username: user
     password: pass
     host_port: account_name
+    database: db_name
+    warehouse: "COMPUTE_WH" # optional
+    role: "sysadmin" # optional
     # table_pattern/schema_pattern is same as above
     # options is same as above
 ```
+
+### Superset `superset`
+
+Extracts:
+
+- List of charts and dashboards
+
+```yml
+source:
+  type: superset
+  config:
+    username: user
+    password: pass
+    provider: db | ldap
+    connect_uri: http://localhost:8088
+```
+
+See documentation for superset's `/security/login` at  https://superset.apache.org/docs/rest-api for more details on superset's login api.
 
 ### Oracle `oracle`
 
@@ -299,7 +324,6 @@ source:
   type: bigquery
   config:
     project_id: project # optional - can autodetect from environment
-    dataset: dataset_name
     options: # options is same as above
       # See https://github.com/mxmzdlv/pybigquery#authentication for details.
       credentials_path: "/path/to/keyfile.json" # optional
@@ -570,6 +594,8 @@ airflow connections add  --conn-type 'datahub_kafka' 'datahub_kafka_default' --c
 ```
 
 ### Using Datahub's Airflow lineage backend
+
+_Note: The Airflow lineage backend is only supported in Airflow 1.10.15+ and 2.0.2+._
 
 1. First, you must configure the Airflow hooks. See above for details.
 2. Add the following lines to your `airflow.cfg` file. You might need to
