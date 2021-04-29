@@ -1,0 +1,14 @@
+---
+source:
+  type: "airflow"
+  config:
+    kitchensink_json_dump: ".../kitchensink-etl/new-kitchensink-graph.json"
+
+sink:
+  type: "datahub-rest"
+  config:
+    server: 'http://localhost:8080'
+#sink:
+#  type: "file"
+#  config:
+#    filename: './airflow_mces.json'

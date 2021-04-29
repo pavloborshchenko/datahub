@@ -13,6 +13,7 @@ cd into metadata-ingestion
 # Set up Python environment for Metadata Ingestion from source using doc:
 https://datahubproject.io/docs/metadata-ingestion/developing/
 
+# HOW TO IMPORT METASTORE DATA
 # Generate fresh kitchensink_json_dump using next command:
 cd into kitchensink-etl project
 install fresh airflow tools: https://scribdjira.atlassian.net/wiki/spaces/DE/pages/1379565601/airflow-tools+-+User+guide
@@ -23,7 +24,7 @@ run: airflow-tools dump --dag kitchensink-etl > kitchensink-graph.json
 # Run import from metastore:
 datahub ingest -c ./examples/recipes/metastore_to_datahub.yml
 
-# Import Looker data
+# HOW TO IMPORT LOOKER DATA
 # Export Looker creds as system variables
 export LOOKERSDK_CLIENT_ID=<YOUR_CLIENT_ID>
 export LOOKERSDK_CLIENT_SECRET=<YOUR_CLIENT_SECRET>
@@ -37,3 +38,12 @@ pip3 install confluent-kafka>=1.5.0
 # Run import
 cd scripts
 python3 looker_dashboard_ingestion.py
+
+# HOW TO IMPORT AIRFLOW DATA
+# Reimport python local environment for metadata-ingestion module
+# Ajust kitchensink_json_dump path in metadata-ingestion/examples/recipes/airflow_to_datahub.yml
+# Run import from kitchensink airflow dag dump:
+datahub ingest -c ./examples/recipes/airflow_to_datahub.yml
+
+Note: you may need to delete metadata-ingestion/src/datahub/ingestion/source/superset.py file from local machine
+because they have active issue with it.
