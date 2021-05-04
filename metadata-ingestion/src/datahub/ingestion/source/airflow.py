@@ -1,5 +1,6 @@
 import time
 import json
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from typing import Dict, Iterable, List
@@ -133,7 +134,8 @@ class AirflowSource(Source):
             data_flow_snapshot.aspects.append(DataFlowInfoClass(
                 name=dag_name,
                 description=dag_name,
-                project="Scribd"
+                project="Scribd",
+                externalUrl=f"https://airflow.production.corp.scribd.com/tree?dag_id={dag_name}"
             ))
             data_flow_snapshot.aspects.append(get_owner(owner="data-end"))
             return MetadataChangeEvent(proposedSnapshot=data_flow_snapshot)
@@ -186,18 +188,39 @@ class AirflowSource(Source):
         def create_data_job_snapshot(self, dag_name: str, job: Dict) -> MetadataChangeEvent:
             #urn: str,
             #aspects: List[Union["DataJobInfoClass", "DataJobInputOutputClass", "OwnershipClass"]]
+            last_run_date = datetime.utcnow().date() - timedelta(days=1)
             job_id = job["task_id"]
-
             data_job_snapshot = DataJobSnapshotClass(
                 urn=f"urn:li:dataJob:(urn:li:dataFlow:(airflow,{dag_name},{self.env}),{job_id})",
                 aspects=[]
             )
             data_job_snapshot.aspects.append(DataJobInfoClass(
                 name=job_id,
-                #TODO:
+                #TODO: should be custom job["operator"] value
                 #type=job["operator"],
                 type="SQL",
-                description=job["label"]
+                description=job["label"],
+                externalUrl=f"https://airflow.production.corp.scribd.com/task?dag_id={dag_name}&task_id={job_id}&execution_date={last_run_date}T02%3A21%3A00%2B00%3A00",
+                customProperties={
+                    **{
+                        "department": str(job.get("department"))
+                    },
+                    **{
+                        "external": str(job.get("external"))
+                    },
+                    **{
+                        "date_independent": str(job.get("date_independent"))
+                    },
+                    **{
+                        "depends_on_past": str(job.get("depends_on_past"))
+                    },
+                    **{
+                        "external_resources": str(job.get("external_resources"))
+                    },
+                    **{
+                        "operator": str(job.get("operator"))
+                    }
+                }
             ))
             data_job_snapshot.aspects.append(DataJobInputOutputClass(
                 inputDatasets=[
