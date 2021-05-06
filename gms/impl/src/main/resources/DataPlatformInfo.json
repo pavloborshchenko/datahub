@@ -156,5 +156,12 @@
     "displayName": "Druid",
     "type": "OLAP_DATASTORE",
     "logoUrl": "https://raw.githubusercontent.com/linkedin/datahub/master/datahub-web-react/src/images/druidlogo.png"
+  },
+  "urn:li:dataPlatform:metastore": {
+    "datasetNameDelimiter": ".",
+    "name": "metastore",
+    "displayName": "DELTA",
+    "type": "QUERY_ENGINE",
+    "logoUrl": "https://raw.githubusercontent.com/pavloborshchenko/datahub/pborshchenko/DE-2141/datahub-web-react/src/images/deltalogo.png"
   }
 }
