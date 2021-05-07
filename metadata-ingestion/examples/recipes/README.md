@@ -13,13 +13,25 @@ cd into metadata-ingestion
 # Set up Python environment for Metadata Ingestion from source using doc:
 https://datahubproject.io/docs/metadata-ingestion/developing/
 
+# You can check the active plugins (metastore should be active):
+datahub check plugins --verbose
+
 # HOW TO IMPORT METASTORE DATA
 # Generate fresh kitchensink_json_dump using next command:
 cd into kitchensink-etl project
 install fresh airflow tools: https://scribdjira.atlassian.net/wiki/spaces/DE/pages/1379565601/airflow-tools+-+User+guide
 run: airflow-tools dump --dag kitchensink-etl > kitchensink-graph.json
 
+# To the same venv as above install additional requirement in order to use delta-rs:
+pip3 install deltalake
+pip3 install pandas
+
 # Ajust metastore_yml_path and kitchensink_json_dump path in metadata-ingestion/examples/recipes/metastore_to_datahub.yml
+
+# Login to prod aws account:
+saml2aws login --session-duration 3600 --profile prod --role arn:aws:iam::273441476120:role/okta_sso_read_only
+# Set prod profile as current:
+export AWS_PROFILE=prod
 
 # Run import from metastore:
 datahub ingest -c ./examples/recipes/metastore_to_datahub.yml

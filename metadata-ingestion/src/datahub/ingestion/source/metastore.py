@@ -3,9 +3,13 @@ import re
 import time
 import yaml
 import json
+import logging
+from datetime import datetime
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from typing import Dict, Iterable, List
+
+from deltalake import DeltaTable, Metadata
 
 from datahub.configuration import ConfigModel
 from datahub.configuration.common import AllowDenyPattern
@@ -50,6 +54,11 @@ from datahub.metadata.schema_classes import (
     CorpUserSnapshotClass
 )
 
+@dataclass
+class DeltaData():
+    version: int
+    created_time: str
+    count = 0
 
 class MetastoreSourceConfig(ConfigModel):
     env: str = "PROD"
@@ -196,17 +205,17 @@ class MetastoreSource(Source):
             )
 
         tables = get_all_tables()
-        owners = set()
-        for table in tables:
-            owner = table.get("owner")
-            if owner != "UNASSIGNED":
-                owners.add(owner)
+        #owners = set()
+        #for table in tables:
+        #    owner = table.get("owner")
+        #    if owner != "UNASSIGNED":
+        #        owners.add(owner)
 
         # create owners
-        for owner in owners:
-            work_unit = MetadataWorkUnit(id=f"User-{owner}", mce=create_owner_entity_mce(owner))
-            self.report.report_workunit(work_unit)
-            yield work_unit
+        #for owner in owners:
+        #    work_unit = MetadataWorkUnit(id=f"User-{owner}", mce=create_owner_entity_mce(owner))
+        #    self.report.report_workunit(work_unit)
+        #    yield work_unit
 
         for table in tables:
             print("DATA: " + json.dumps(table))
@@ -273,7 +282,22 @@ class MetastoreSource(Source):
                 ]
             )
 
+        def get_delta_data() -> DeltaData:
+            try:
+                dt: DeltaTable = DeltaTable("s3://scribd-data-warehouse-prod/databases/" + table["table_name"].replace(".", "/"))
+                metadata: Metadata = dt.metadata()
+                print("METADATA: " + str(metadata))
+                # TODO: too slow
+                #df = dt.to_pyarrow_table().to_pandas()
+                #count = str(df.shape[0])
+                created_time = str(datetime.fromtimestamp(metadata.created_time / 1000).strftime("%m/%d/%Y, %H:%M:%S"))
+                return DeltaData(version=dt.version(), created_time=created_time)
+            except (OSError, Exception) as e:
+                logging.error("ERROR: " + str(e))
+                return DeltaData(version=0, created_time="0")
+
         def get_dataset_properties() -> DatasetPropertiesClass:
+            delta_data = get_delta_data()
             return DatasetPropertiesClass(
                 description=table.get("comment"),
                 customProperties={
@@ -282,6 +306,15 @@ class MetastoreSource(Source):
                     },
                     **{
                         "partition_columns": str(table.get("partition_columns"))
+                    },
+                    **{
+                        "created_time": delta_data.created_time
+                    },
+                    **{
+                        "version": str(delta_data.version)
+                    },
+                    **{
+                        "count": str(delta_data.count)
                     }
                 },
                 uri=None,
