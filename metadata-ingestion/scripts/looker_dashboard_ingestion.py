@@ -119,6 +119,21 @@ class ProperDataHubEvents:
             "type": "DEVELOPER"
         }]
 
+        #com.linkedin.pegasus2avro.metadata.snapshot.ChartSnapshot
+        #urn: str,
+        #aspects: List[Union["ChartInfoClass", "ChartQueryClass", "OwnershipClass", "StatusClass", "GlobalTagsClass"]]
+
+        #com.linkedin.pegasus2avro.chart.ChartInfo
+        #title: str,
+        #description: str,
+        #lastModified: "ChangeAuditStampsClass",
+        #customProperties: Optional[Dict[str, str]]=None,
+        #externalUrl: Union[None, str]=None,
+        #chartUrl: Union[None, str]=None,
+        #inputs: Union[None, List[str]]=None,
+        #type: Union[None, Union[str, "ChartTypeClass"]]=None,
+        #access: Union[None, Union[str, "AccessLevelClass"]]=None,
+        #lastRefreshed: Union[None, int]=None
         return {
             "auditHeader": None,
             "proposedSnapshot": {"com.linkedin.pegasus2avro.metadata.snapshot.ChartSnapshot": {
@@ -126,12 +141,14 @@ class ProperDataHubEvents:
                 "aspects": [
                     {"com.linkedin.pegasus2avro.chart.ChartInfo": {
                         "title": dashboard_element.title,
-                        "description": "",
+                        "description": "None",
                         "lastModified": {"created": {"time": sys_time, "actor": actor}, "lastModified": {"time": sys_time, "actor": actor}},
-                        "chartUrl": "",
                         "inputs": {
                             "array": dashboard_element.get_view_urns()
-                        }
+                        },
+                        #"chartUrl": "",
+                        #TODO: extract chart type
+                        #"type": "BAR"
                     }},
                     {"com.linkedin.pegasus2avro.common.Ownership": {
                         "owners": owners,
@@ -159,6 +176,20 @@ class ProperDataHubEvents:
         #for mce in chart_mces:
         #    print(f"CREATED proposedSnapshot OBJECTS: " + str(mce["proposedSnapshot"]))
 
+        #com.linkedin.pegasus2avro.metadata.snapshot.DashboardSnapshot
+        #urn: str,
+        #aspects: List[Union["DashboardInfoClass", "OwnershipClass", "StatusClass", "GlobalTagsClass"]]
+
+        #com.linkedin.pegasus2avro.dashboard.DashboardInfo
+        #title: str,
+        #description: str,
+        #lastModified: "ChangeAuditStampsClass",
+        #customProperties: Optional[Dict[str, str]]=None,
+        #externalUrl: Union[None, str]=None,
+        #charts: Optional[List[str]]=None,
+        #dashboardUrl: Union[None, str]=None,
+        #access: Union[None, Union[str, "AccessLevelClass"]]=None,
+        #lastRefreshed: Union[None, int]=None,
         dashboard_mce = {
             "auditHeader": None,
             "proposedSnapshot": {"com.linkedin.pegasus2avro.metadata.snapshot.DashboardSnapshot": {
@@ -167,9 +198,16 @@ class ProperDataHubEvents:
                     {"com.linkedin.pegasus2avro.dashboard.DashboardInfo": {
                         "title": looker_dashboard.title,
                         "description": looker_dashboard.description,
+                        #TODO: type Dict is not recognized (schema matching error)
+                        #"customProperties": {
+                        #    "imported": sys_time
+                        #},
                         "charts": [mce["proposedSnapshot"]["com.linkedin.pegasus2avro.metadata.snapshot.ChartSnapshot"]["urn"] for mce in chart_mces],
                         "lastModified": {"created": {"time": sys_time, "actor": actor}, "lastModified": {"time": sys_time, "actor": actor}},
-                        "dashboardUrl": looker_dashboard.url
+                        #TODO: two properties are required for having active link, asked question in slack
+                        "dashboardUrl": looker_dashboard.url,
+                        "externalUrl": looker_dashboard.url,
+                        "access": "PUBLIC"
                     }},
                     {"com.linkedin.pegasus2avro.common.Ownership": {
                         "owners": owners,
@@ -177,6 +215,11 @@ class ProperDataHubEvents:
                             "time": sys_time,
                             "actor": actor
                         }
+                    }},
+                    {"com.linkedin.pegasus2avro.common.GlobalTags": {
+                        "tags": [
+                            {"tag": "urn:li:tag:LOOKER"}
+                        ]
                     }}
                 ]
             }},
@@ -455,7 +498,7 @@ def main():
     file.write("[\n")
     wrote_something = False
 
-    # workaround
+    # save workaround mce only to file
     workaround_file_path = pathlib.Path(LOOKER_MCE_WORKAROUND_FILE)
     workaround_file = workaround_file_path.open("w")
     workaround_file.write("[\n")
