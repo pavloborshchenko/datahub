@@ -3,7 +3,6 @@ import re
 import time
 import yaml
 import json
-import logging
 from datetime import datetime
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
@@ -293,7 +292,7 @@ class MetastoreSource(Source):
                 created_time = str(datetime.fromtimestamp(metadata.created_time / 1000).strftime("%m/%d/%Y, %H:%M:%S"))
                 return DeltaData(version=dt.version(), created_time=created_time)
             except (OSError, Exception) as e:
-                logging.error("ERROR: " + str(e))
+                print("ERROR: " + str(e))
                 return DeltaData(version=0, created_time="0")
 
         def get_dataset_properties() -> DatasetPropertiesClass:
