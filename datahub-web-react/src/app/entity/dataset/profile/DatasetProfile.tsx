@@ -17,6 +17,8 @@ import { Message } from '../../../shared/Message';
 import TagGroup from '../../../shared/tags/TagGroup';
 import useIsLineageMode from '../../../lineage/utils/useIsLineageMode';
 import { useEntityRegistry } from '../../../useEntityRegistry';
+import { useGetAuthenticatedUser } from '../../../useGetAuthenticatedUser';
+import analytics, { EventType, EntityActionType } from '../../../analytics';
 
 export enum TabType {
     Ownership = 'Ownership',
@@ -35,6 +37,7 @@ const EMPTY_ARR: never[] = [];
 export const DatasetProfile = ({ urn }: { urn: string }): JSX.Element => {
     const entityRegistry = useEntityRegistry();
     const { loading, error, data } = useGetDatasetQuery({ variables: { urn } });
+    const user = useGetAuthenticatedUser();
     const [updateDataset] = useUpdateDatasetMutation({
         update(cache, { data: newDataset }) {
             cache.modify({
@@ -72,11 +75,18 @@ export const DatasetProfile = ({ urn }: { urn: string }): JSX.Element => {
                 path: TabType.Schema.toLowerCase(),
                 content: (
                     <SchemaView
+                        urn={urn}
                         schema={schema}
                         editableSchemaMetadata={editableSchemaMetadata}
-                        updateEditableSchema={(update) =>
-                            updateDataset({ variables: { input: { urn, editableSchemaMetadata: update } } })
-                        }
+                        updateEditableSchema={(update) => {
+                            analytics.event({
+                                type: EventType.EntityActionEvent,
+                                actionType: EntityActionType.UpdateSchemaDescription,
+                                entityType: EntityType.Dataset,
+                                entityUrn: urn,
+                            });
+                            return updateDataset({ variables: { input: { urn, editableSchemaMetadata: update } } });
+                        }}
                     />
                 ),
             },
@@ -87,9 +97,15 @@ export const DatasetProfile = ({ urn }: { urn: string }): JSX.Element => {
                     <OwnershipView
                         owners={(ownership && ownership.owners) || EMPTY_ARR}
                         lastModifiedAt={(ownership && ownership.lastModified?.time) || 0}
-                        updateOwnership={(update) =>
-                            updateDataset({ variables: { input: { urn, ownership: update } } })
-                        }
+                        updateOwnership={(update) => {
+                            analytics.event({
+                                type: EventType.EntityActionEvent,
+                                actionType: EntityActionType.UpdateOwnership,
+                                entityType: EntityType.Dataset,
+                                entityUrn: urn,
+                            });
+                            return updateDataset({ variables: { input: { urn, ownership: update } } });
+                        }}
                     />
                 ),
             },
@@ -108,10 +124,17 @@ export const DatasetProfile = ({ urn }: { urn: string }): JSX.Element => {
                 path: 'docs',
                 content: (
                     <DocumentsView
+                        authenticatedUserUrn={user?.urn}
                         documents={institutionalMemory?.elements || EMPTY_ARR}
-                        updateDocumentation={(update) =>
-                            updateDataset({ variables: { input: { urn, institutionalMemory: update } } })
-                        }
+                        updateDocumentation={(update) => {
+                            analytics.event({
+                                type: EventType.EntityActionEvent,
+                                actionType: EntityActionType.UpdateDocumentation,
+                                entityType: EntityType.Dataset,
+                                entityUrn: urn,
+                            });
+                            return updateDataset({ variables: { input: { urn, institutionalMemory: update } } });
+                        }}
                     />
                 ),
             },
@@ -132,11 +155,27 @@ export const DatasetProfile = ({ urn }: { urn: string }): JSX.Element => {
                             editableTags={data.dataset?.globalTags as GlobalTags}
                             canAdd
                             canRemove
-                            updateTags={(globalTags) => updateDataset({ variables: { input: { urn, globalTags } } })}
+                            updateTags={(globalTags) => {
+                                analytics.event({
+                                    type: EventType.EntityActionEvent,
+                                    actionType: EntityActionType.UpdateTags,
+                                    entityType: EntityType.Dataset,
+                                    entityUrn: urn,
+                                });
+                                return updateDataset({ variables: { input: { urn, globalTags } } });
+                            }}
                         />
                     }
                     tabs={getTabs(data.dataset as Dataset)}
                     header={getHeader(data.dataset as Dataset)}
+                    onTabChange={(tab: string) => {
+                        analytics.event({
+                            type: EventType.EntitySectionViewEvent,
+                            entityType: EntityType.Dataset,
+                            entityUrn: urn,
+                            section: tab,
+                        });
+                    }}
                 />
             )}
         </>

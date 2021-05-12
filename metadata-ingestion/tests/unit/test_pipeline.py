@@ -31,6 +31,7 @@ class PipelineTest(unittest.TestCase):
         )
         pipeline.run()
         pipeline.raise_from_status()
+        pipeline.pretty_print_summary()
         mock_source.assert_called_once()
         mock_sink.assert_called_once()
 
@@ -38,7 +39,7 @@ class PipelineTest(unittest.TestCase):
 
         pipeline = Pipeline.create(
             {
-                "source": {"type": "tests.unit.test_pipeline.TestSource"},
+                "source": {"type": "tests.unit.test_pipeline.FakeSource"},
                 "transformers": [
                     {"type": "tests.unit.test_pipeline.AddStatusRemovedTransformer"}
                 ],
@@ -76,7 +77,7 @@ class AddStatusRemovedTransformer(Transformer):
             yield record_envelope
 
 
-class TestSource(Source):
+class FakeSource(Source):
     def __init__(self):
         self.source_report = SourceReport()
         self.work_units: List[MetadataWorkUnit] = [
@@ -85,7 +86,8 @@ class TestSource(Source):
 
     @classmethod
     def create(cls, config_dict: dict, ctx: PipelineContext) -> "Source":
-        return TestSource()
+        assert not config_dict
+        return FakeSource()
 
     def get_workunits(self) -> Iterable[WorkUnit]:
         return self.work_units

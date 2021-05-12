@@ -10,6 +10,8 @@ import { navigateToSearchUrl } from '../search/utils/navigateToSearchUrl';
 import { GetSearchResultsQuery, useGetAutoCompleteResultsLazyQuery } from '../../graphql/search.generated';
 import { useGetAllEntitySearchResults } from '../../utils/customGraphQL/useGetAllEntitySearchResults';
 import { EntityType } from '../../types.generated';
+import analytics, { EventType } from '../analytics';
+import AnalyticsLink from '../search/AnalyticsLink';
 
 const Background = styled.div`
     width: 100%;
@@ -62,6 +64,12 @@ const HeaderContainer = styled.div`
     align-items: center;
 `;
 
+const NavGroup = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
 function getSuggestionFieldsFromResult(result: GetSearchResultsQuery): string[] {
     return (
         (result?.search?.searchResults
@@ -98,11 +106,17 @@ function sortRandom() {
 export const HomePageHeader = () => {
     const history = useHistory();
     const entityRegistry = useEntityRegistry();
-    const { data } = useGetAuthenticatedUser();
+    const user = useGetAuthenticatedUser();
     const [getAutoCompleteResults, { data: suggestionsData }] = useGetAutoCompleteResultsLazyQuery();
     const themeConfig = useTheme();
 
     const onSearch = (query: string) => {
+        analytics.event({
+            type: EventType.SearchEvent,
+            query,
+            pageNumber: 1,
+            originPath: window.location.pathname,
+        });
         navigateToSearchUrl({
             query,
             history,
@@ -154,17 +168,20 @@ export const HomePageHeader = () => {
         <Background>
             <Row justify="space-between" style={styles.navBar}>
                 <WelcomeText>
-                    {data && (
+                    {user && (
                         <>
-                            Welcome back, <b>{data?.corpUser?.info?.firstName || data?.corpUser?.username}</b>.
+                            Welcome back, <b>{user.info?.firstName || user.username}</b>.
                         </>
                     )}
                 </WelcomeText>
-                <ManageAccount
-                    urn={data?.corpUser?.urn || ''}
-                    pictureLink={data?.corpUser?.editableInfo?.pictureLink || ''}
-                    name={data?.corpUser?.info?.firstName || data?.corpUser?.username || undefined}
-                />
+                <NavGroup>
+                    <AnalyticsLink />
+                    <ManageAccount
+                        urn={user?.urn || ''}
+                        pictureLink={user?.editableInfo?.pictureLink || ''}
+                        name={user?.info?.firstName || user?.username || undefined}
+                    />
+                </NavGroup>
             </Row>
             <HeaderContainer>
                 <Image src={themeConfig.assets.logoUrl} preview={false} style={styles.logoImage} />
